@@ -4,7 +4,7 @@ import ChainManager from "@/LLMProviders/chainManager";
 import { parseReasoningBlock } from "@/LLMProviders/chainRunner/utils/AgentReasoningState";
 import { logError, logInfo, logWarn } from "@/logger";
 import { getSettings } from "@/settings/model";
-import { ChatMessage } from "@/types/message";
+import { ChatMessage, MessageContext } from "@/types/message";
 import {
   ensureFolderExists,
   extractTextFromChunk,
@@ -267,7 +267,7 @@ export class ChatPersistenceManager {
   /**
    * Format messages into markdown content
    */
-  private formatChatContent(messages: ChatMessage[]): string {
+  private formatChatContent_old(messages: ChatMessage[]): string {
     return messages
       .map((message) => {
         const timestamp = message.timestamp ? message.timestamp.display : "Unknown time";
@@ -320,6 +320,156 @@ export class ChatPersistenceManager {
         return content;
       })
       .join("\n\n");
+  }
+
+  /**
+   * Format messages into markdown content
+   */
+  formatChatContent(messages: ChatMessage[]): string {
+    return messages
+      .map((message) => {
+        const messageText = message.message;
+        const context = this.formatContext(message.context);
+        const timestamp = message.timestamp ? message.timestamp.display : "Unknown time";
+
+        if (message.sender === USER_SENDER) {
+          return this.formatUserMessage(messageText, context, timestamp);
+        }
+
+        if (message.sender === AI_SENDER) {
+          return this.formatAIMessage(messageText, context, timestamp);
+        }
+
+        return messageText;
+      })
+      .join("\n\n");
+  }
+
+  formatUserMessage(message: string, context: string, timestamp: string): string {
+    const body = message + context + this.formatTimestamp(timestamp);
+    return this.toCalloutBlock("copilot-user", "User Prompt", "", body);
+  }
+
+  formatAIMessage(message: string, context: string, timestamp: string): string {
+    let messageText = message;
+
+    const reasoningData = parseReasoningBlock(messageText);
+    if (reasoningData) {
+      messageText = reasoningData.contentAfter;
+    }
+
+    const { think, content } = this.extractThinkBlock(messageText);
+    let output = "";
+    if (think) {
+      output += this.toCalloutBlock("copilot-ai-think", "Thought for a while", "-", think) + "\n\n";
+    }
+
+    output += content;
+
+    if (context) {
+      output += context;
+    }
+
+    output += this.formatTimestamp(timestamp);
+
+    return output;
+  }
+
+  extractThinkBlock(message: string) {
+    const match = message.match(/<think>([\s\S]*?)<\/think>/);
+
+    if (!match) {
+      return { think: null, content: message };
+    }
+
+    return {
+      think: match[1].trim(),
+      content: message.replace(match[0], "").trim(),
+    };
+  }
+
+  formatTimestamp(timestamp: string): string {
+    return `\n\n<time>${timestamp}</time>`;
+  }
+
+  formatContext(context: MessageContext | undefined): string {
+    if (!context) return "";
+
+    const hasAny =
+      context.notes?.length ||
+      context.urls?.length ||
+      context.webTabs?.length ||
+      context.tags?.length ||
+      context.folders?.length;
+
+    if (!hasAny) return "";
+
+    const formatContextList = <T>(
+      items: readonly T[] | undefined,
+      mapper: (item: T) => string
+    ): string => {
+      return items?.length ? items.map(mapper).join("") : "";
+    };
+
+    const notes = formatContextList(context.notes, (s) => `\n>   - [[${s.path}|${s.basename}]]`);
+
+    const urls = formatContextList(context.urls, (url) => `\n>   - ${url}`);
+
+    const webTabs = formatContextList(
+      context.webTabs,
+      (s) => `\n>   - [![favicon](${s.faviconUrl}) ${s.title}](${s.url})`
+    );
+
+    const tags = formatContextList(context.tags, (tag) => `\n>   - ${tag}`);
+
+    const folders = formatContextList(context.folders, (folder) => `\n>   - ${folder}`);
+
+    return (
+      `\n\n> [!copilot-context] Context` +
+      `\n> - Notes${notes}` +
+      `\n> - URLs${urls}` +
+      `\n> - Web Tabs${webTabs}` +
+      `\n> - Tags${tags}` +
+      `\n> - Folders${folders}`
+    );
+  }
+
+  toCalloutBlock(type: string, title: string, foldMarker: string, content: string): string {
+    const prefixed = content
+      .split("\n")
+      .map((line) => `> ${line}`)
+      .join("\n");
+
+    const validMarker = foldMarker === "-" || foldMarker === "+" ? foldMarker : "";
+    const titlePart = title ? ` ${title}` : "";
+
+    return `> [!${type}]${validMarker}${titlePart}\n${prefixed}`;
+  }
+
+  async renameFileToMatchTopic(file: TFile, topic: string): Promise<void> {
+    if (!file || !topic) return;
+
+    const cache = this.app.metadataCache.getFileCache(file);
+    const epoch = cache?.frontmatter?.epoch;
+    if (!epoch) {
+      return;
+    }
+
+    const messages = this.messageRepo.getDisplayMessages();
+    const newPath = this.generateFileName(messages, epoch, topic);
+
+    console.log("cache:", cache);
+    console.log("epoch:", epoch);
+    console.log("messages:", messages);
+    console.log("newPath:", newPath);
+
+    if (file.path === newPath) {
+      return;
+    }
+
+    await this.app.fileManager.renameFile(file, newPath);
+
+    return;
   }
 
   /**
@@ -756,6 +906,7 @@ ${chatContent}`;
           return;
         }
         await this.applyTopicToFrontmatter(file, topic);
+        await this.renameFileToMatchTopic(file, topic);
       } catch (error) {
         logError("[ChatPersistenceManager] Error during async topic generation:", error);
       }

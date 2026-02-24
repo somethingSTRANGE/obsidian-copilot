@@ -340,7 +340,19 @@ Please refer to your model provider’s documentation for the context window siz
 
 ## **Custom Modifications in This Build**
 
-TBD
+- Swapped the **Open Copilot Chat** ribbon icon from `message-square` to `brain-circuit`.
+
+- Conversations are initially auto-saved using a filename based on the first few words of the user’s prompt. Once a topic is generated, the file is automatically renamed to reflect the topic.
+
+- YAML frontmatter formatting has been improved so that optional fields no longer create blank lines.
+
+- Timestamps are now wrapped in `<time>` tags, making them easier to style with CSS.
+
+- User prompts are wrapped in a custom callout `> [!copilot-user]` for consistent CSS styling.
+
+- Message context is exported as a properly nested markdown list, with items grouped by type and styled as rounded buttons with appropriate icons.
+
+- AI responses remain in pure markdown, while reasoning content previously wrapped in `<think>` is now placed in a collapsible custom callout `> [!copilot-ai-think]`. This keeps the focus on the AI’s actual response, but the thought process can be expanded if needed.
 
 ## **🙏 Thank You**
 

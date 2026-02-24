@@ -1284,3 +1284,265 @@ body.is-mobile div[data-radix-popper-content-wrapper] {
 .copilot-fade-mask-bottom {
   background: linear-gradient(to top, var(--background-primary), transparent);
 }
+
+/* Style updates for the `formatChatContent(e)` udpate */
+
+.view-content:has(.callout[data-callout="copilot-user"]) time,
+.copilot-timestamp {
+  color: var(--text-faint);
+  font-size: smaller;
+}
+
+.view-content:has(.callout[data-callout="copilot-user"]) time::before {
+  content: "";
+  display: inline-block;
+  background-color: currentColor;
+  height: 0.9rem;
+  width: 0.9rem;
+  margin-right: 0.25rem;
+  position: relative;
+  top: -0.125rem;
+  vertical-align: middle;
+}
+
+.view-content:has(.callout[data-callout="copilot-user"])
+  .callout[data-callout="copilot-user"]
+  time::before {
+  mask: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJsdWNpZGUgbHVjaWRlLXNxdWFyZS10ZXJtaW5hbC1pY29uIGx1Y2lkZS1zcXVhcmUtdGVybWluYWwiPjxwYXRoIGQ9Im03IDExIDItMi0yLTIiLz48cGF0aCBkPSJNMTEgMTNoNCIvPjxyZWN0IHdpZHRoPSIxOCIgaGVpZ2h0PSIxOCIgeD0iMyIgeT0iMyIgcng9IjIiIHJ5PSIyIi8+PC9zdmc+)
+    no-repeat center;
+  mask: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJsdWNpZGUgbHVjaWRlLXRlcm1pbmFsLWljb24gbHVjaWRlLXRlcm1pbmFsIj48cGF0aCBkPSJNMTIgMTloOCIvPjxwYXRoIGQ9Im00IDE3IDYtNi02LTYiLz48L3N2Zz4=)
+    no-repeat center;
+  mask: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJsdWNpZGUgbHVjaWRlLXNxdWFyZS1jaGV2cm9uLXJpZ2h0LWljb24gbHVjaWRlLXNxdWFyZS1jaGV2cm9uLXJpZ2h0Ij48cmVjdCB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHg9IjMiIHk9IjMiIHJ4PSIyIi8+PHBhdGggZD0ibTEwIDggNCA0LTQgNCIvPjwvc3ZnPg==)
+    no-repeat center;
+  mask: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJsdWNpZGUgbHVjaWRlLXNxdWFyZS11c2VyLWljb24gbHVjaWRlLXNxdWFyZS11c2VyIj48cmVjdCB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHg9IjMiIHk9IjMiIHJ4PSIyIi8+PGNpcmNsZSBjeD0iMTIiIGN5PSIxMCIgcj0iMyIvPjxwYXRoIGQ9Ik03IDIxdi0yYTIgMiAwIDAgMSAyLTJoNmEyIDIgMCAwIDEgMiAydjIiLz48L3N2Zz4=)
+    no-repeat center;
+  mask: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJsdWNpZGUgbHVjaWRlLXVzZXItaWNvbiBsdWNpZGUtdXNlciI+PHBhdGggZD0iTTE5IDIxdi0yYTQgNCAwIDAgMC00LTRIOWE0IDQgMCAwIDAtNCA0djIiLz48Y2lyY2xlIGN4PSIxMiIgY3k9IjciIHI9IjQiLz48L3N2Zz4=)
+    no-repeat center;
+  mask-size: contain;
+}
+
+.view-content:has(.callout[data-callout="copilot-user"]) time::before {
+  mask: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJsdWNpZGUgbHVjaWRlLWJyYWluLWNpcmN1aXQtaWNvbiBsdWNpZGUtYnJhaW4tY2lyY3VpdCI+PHBhdGggZD0iTTEyIDVhMyAzIDAgMSAwLTUuOTk3LjEyNSA0IDQgMCAwIDAtMi41MjYgNS43NyA0IDQgMCAwIDAgLjU1NiA2LjU4OEE0IDQgMCAxIDAgMTIgMThaIi8+PHBhdGggZD0iTTkgMTNhNC41IDQuNSAwIDAgMCAzLTQiLz48cGF0aCBkPSJNNi4wMDMgNS4xMjVBMyAzIDAgMCAwIDYuNDAxIDYuNSIvPjxwYXRoIGQ9Ik0zLjQ3NyAxMC44OTZhNCA0IDAgMCAxIC41ODUtLjM5NiIvPjxwYXRoIGQ9Ik02IDE4YTQgNCAwIDAgMS0xLjk2Ny0uNTE2Ii8+PHBhdGggZD0iTTEyIDEzaDQiLz48cGF0aCBkPSJNMTIgMThoNmEyIDIgMCAwIDEgMiAydjEiLz48cGF0aCBkPSJNMTIgOGg4Ii8+PHBhdGggZD0iTTE2IDhWNWEyIDIgMCAwIDEgMi0yIi8+PGNpcmNsZSBjeD0iMTYiIGN5PSIxMyIgcj0iLjUiLz48Y2lyY2xlIGN4PSIxOCIgY3k9IjMiIHI9Ii41Ii8+PGNpcmNsZSBjeD0iMjAiIGN5PSIyMSIgcj0iLjUiLz48Y2lyY2xlIGN4PSIyMCIgY3k9IjgiIHI9Ii41Ii8+PC9zdmc+)
+    no-repeat center;
+  mask-size: contain;
+}
+
+/*
+ * Callout: copilot-ai-think
+ */
+.callout[data-callout="copilot-ai-think"] {
+  background-color: transparent;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  mix-blend-mode: normal;
+  --callout-color: 255, 255, 255;
+  --callout-padding: 0.75rem;
+}
+
+.callout[data-callout="copilot-ai-think"] > .callout-title {
+  color: var(--text-muted);
+  font-size: 0.75em;
+  cursor: pointer;
+  user-select: none;
+  align-items: center;
+  position: relative;
+  left: -0.25rem;
+}
+
+.callout[data-callout="copilot-ai-think"] > .callout-title .callout-icon {
+  display: none;
+}
+
+.callout[data-callout="copilot-ai-think"] > .callout-title .callout-fold {
+  order: -1;
+  padding: 0;
+}
+
+.callout[data-callout="copilot-ai-think"] > .callout-content {
+  margin: 0.75rem 0 0 0;
+  padding: 0.75rem;
+  border-radius: 4px;
+  background-color: var(--background-secondary);
+  background-color: rgba(var(--callout-color), 0.025);
+  color: var(--text-muted);
+  font-size: 0.9em;
+}
+
+.callout[data-callout="copilot-ai-think"] > .callout-content > p:first-child {
+  margin-top: 0;
+}
+
+.callout[data-callout="copilot-ai-think"] > .callout-content > p:last-child {
+  margin-bottom: 0;
+}
+
+/*
+ * Callout: copilot-user
+ */
+.callout[data-callout="copilot-user"] {
+  padding: var(--size-4-2) var(--size-4-3);
+}
+
+.callout[data-callout="copilot-user"] > .callout-title {
+  display: none;
+}
+
+.callout[data-callout="copilot-user"] > .callout-content > p:first-child {
+  margin-top: 0;
+}
+
+.callout[data-callout="copilot-user"] > .callout-content > p:last-child {
+  margin-bottom: 0;
+}
+
+/*
+ * Callout: copilot-context
+ */
+
+.callout[data-callout="copilot-context"] {
+  background-color: transparent;
+  mix-blend-mode: normal;
+  --callout-padding: 0;
+}
+
+/* The next few styles reset the nested lists to remove
+ * indentation, bullets, and other default list styling */
+.callout[data-callout="copilot-context"] .callout-title {
+  display: none;
+}
+.callout[data-callout="copilot-context"] .callout-content ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.callout[data-callout="copilot-context"] .callout-content ul li ul::before {
+  display: none;
+}
+.callout[data-callout="copilot-context"] .callout-content li span.list-bullet,
+.callout[data-callout="copilot-context"] .callout-content li span.list-collapse-indicator {
+  display: none;
+}
+
+/* Hide the context list type labels */
+.callout[data-callout="copilot-context"] .callout-content li {
+  display: flex;
+  font-size: 0;
+  padding: 0;
+}
+
+/* Reset the font size for the inner list labels */
+.callout[data-callout="copilot-context"] .callout-content > ul > li > ul > li {
+  font-size: 0.75rem;
+  line-height: 1;
+  margin: 0;
+}
+
+/* The outer list lays the context types out in wrapping flex rows */
+.callout[data-callout="copilot-context"] .callout-content > ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  align-items: flex-start;
+  align-content: flex-start;
+  font-size: 0;
+  white-space: nowrap;
+}
+
+/* The inner list lays the context links out in wrapping flex rows */
+.callout[data-callout="copilot-context"] .callout-content > ul > li > ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+  align-items: flex-start;
+}
+
+/* Hide outer list items that do not contain lists themselves */
+.callout[data-callout="copilot-context"] .callout-content > ul > li:not(:has(> ul > li)) {
+  display: none;
+}
+
+/* Context links are styled as small rounded buttons */
+.callout[data-callout="copilot-context"] .callout-content a {
+  display: inline-block;
+  background: transparent;
+  border: 1px solid var(--background-modifier-border-hover);
+  border-radius: 0.375rem;
+  color: var(--text-normal);
+  height: 1.375rem;
+  line-height: 1.375;
+  font-weight: 300;
+  padding: 0.125rem 0.25rem 0.125rem 0.125rem;
+  text-align: center;
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+.callout[data-callout="copilot-context"] .callout-content a:hover {
+  background-color: var(--background-primary);
+  border: 1px solid var(--background-modifier-border-focus);
+  color: var(--text-on-accent);
+  text-decoration: none;
+}
+
+.callout[data-callout="copilot-context"] .callout-content a:not(:has(img))::before {
+  content: "";
+  display: inline-block;
+  background-color: currentColor;
+  height: 1rem;
+  width: 1rem;
+  margin-right: 0.25rem;
+  position: relative;
+  top: -0.125rem;
+  vertical-align: middle;
+}
+
+/* Notes */
+.callout[data-callout="copilot-context"] .callout-content > ul > li:nth-child(1) a::before {
+  mask: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJsdWNpZGUgbHVjaWRlLWZpbGUtdGV4dC1pY29uIGx1Y2lkZS1maWxlLXRleHQiPjxwYXRoIGQ9Ik02IDIyYTIgMiAwIDAgMS0yLTJWNGEyIDIgMCAwIDEgMi0yaDhhMi40IDIuNCAwIDAgMSAxLjcwNC43MDZsMy41ODggMy41ODhBMi40IDIuNCAwIDAgMSAyMCA4djEyYTIgMiAwIDAgMS0yIDJ6Ii8+PHBhdGggZD0iTTE0IDJ2NWExIDEgMCAwIDAgMSAxaDUiLz48cGF0aCBkPSJNMTAgOUg4Ii8+PHBhdGggZD0iTTE2IDEzSDgiLz48cGF0aCBkPSJNMTYgMTdIOCIvPjwvc3ZnPg==)
+    no-repeat center;
+  mask-size: contain;
+}
+
+/* URLs */
+.callout[data-callout="copilot-context"] .callout-content > ul > li:nth-child(2) a::before {
+  mask: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJsdWNpZGUgbHVjaWRlLWxpbmstaWNvbiBsdWNpZGUtbGluayI+PHBhdGggZD0iTTEwIDEzYTUgNSAwIDAgMCA3LjU0LjU0bDMtM2E1IDUgMCAwIDAtNy4wNy03LjA3bC0xLjcyIDEuNzEiLz48cGF0aCBkPSJNMTQgMTFhNSA1IDAgMCAwLTcuNTQtLjU0bC0zIDNhNSA1IDAgMCAwIDcuMDcgNy4wN2wxLjcxLTEuNzEiLz48L3N2Zz4=)
+    no-repeat center;
+  mask-size: contain;
+}
+
+/* Web Tabs */
+.callout[data-callout="copilot-context"] .callout-content > ul > li:nth-child(3) a::before {
+  mask: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJsdWNpZGUgbHVjaWRlLWdsb2JlLWljb24gbHVjaWRlLWdsb2JlIj48Y2lyY2xlIGN4PSIxMiIgY3k9IjEyIiByPSIxMCIvPjxwYXRoIGQ9Ik0xMiAyYTE0LjUgMTQuNSAwIDAgMCAwIDIwIDE0LjUgMTQuNSAwIDAgMCAwLTIwIi8+PHBhdGggZD0iTTIgMTJoMjAiLz48L3N2Zz4=)
+    no-repeat center;
+  mask-size: contain;
+}
+
+/* Tags */
+.callout[data-callout="copilot-context"] .callout-content > ul > li:nth-child(4) a::before {
+  /*mask: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJsdWNpZGUgbHVjaWRlLWhhc2gtaWNvbiBsdWNpZGUtaGFzaCI+PGxpbmUgeDE9IjQiIHgyPSIyMCIgeTE9IjkiIHkyPSI5Ii8+PGxpbmUgeDE9IjQiIHgyPSIyMCIgeTE9IjE1IiB5Mj0iMTUiLz48bGluZSB4MT0iMTAiIHgyPSI4IiB5MT0iMyIgeTI9IjIxIi8+PGxpbmUgeDE9IjE2IiB4Mj0iMTQiIHkxPSIzIiB5Mj0iMjEiLz48L3N2Zz4=) no-repeat center;*/
+  mask: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJsdWNpZGUgbHVjaWRlLXRhZy1pY29uIGx1Y2lkZS10YWciPjxwYXRoIGQ9Ik0xMi41ODYgMi41ODZBMiAyIDAgMCAwIDExLjE3MiAySDRhMiAyIDAgMCAwLTIgMnY3LjE3MmEyIDIgMCAwIDAgLjU4NiAxLjQxNGw4LjcwNCA4LjcwNGEyLjQyNiAyLjQyNiAwIDAgMCAzLjQyIDBsNi41OC02LjU4YTIuNDI2IDIuNDI2IDAgMCAwIDAtMy40MnoiLz48Y2lyY2xlIGN4PSI3LjUiIGN5PSI3LjUiIHI9Ii41IiBmaWxsPSJjdXJyZW50Q29sb3IiLz48L3N2Zz4=)
+    no-repeat center;
+  mask-size: contain;
+}
+
+/* Folders */
+.callout[data-callout="copilot-context"] .callout-content > ul > li:nth-child(5) a::before {
+  mask: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJsdWNpZGUgbHVjaWRlLWZvbGRlci1pY29uIGx1Y2lkZS1mb2xkZXIiPjxwYXRoIGQ9Ik0yMCAyMGEyIDIgMCAwIDAgMi0yVjhhMiAyIDAgMCAwLTItMmgtNy45YTIgMiAwIDAgMS0xLjY5LS45TDkuNiAzLjlBMiAyIDAgMCAwIDcuOTMgM0g0YTIgMiAwIDAgMC0yIDJ2MTNhMiAyIDAgMCAwIDIgMloiLz48L3N2Zz4=)
+    no-repeat center;
+  mask-size: contain;
+}
+
+/* Context items with images, such as favicons */
+.callout[data-callout="copilot-context"] .callout-content a img {
+  width: 1rem;
+  height: 1rem;
+  margin-top: -0.1875rem;
+  vertical-align: middle;
+  pointer-events: none;
+}
