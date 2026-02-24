@@ -723,11 +723,11 @@ ${conversationSummary}`;
 
     return `---
 epoch: ${firstMessageEpoch}
-modelKey: "${escapeYamlString(modelKey)}"
-${topic ? `topic: "${topic}"` : ""}
-${lastAccessedAt ? `lastAccessedAt: ${lastAccessedAt}` : ""}
-${currentProject ? `projectId: ${currentProject.id}` : ""}
-${currentProject ? `projectName: ${currentProject.name}` : ""}
+modelKey: "${escapeYamlString(modelKey)}"${topic ? `\ntopic: "${topic}"` : ""}${
+      lastAccessedAt ? `\nlastAccessedAt: ${lastAccessedAt}` : ""
+    }${currentProject ? `\nprojectId: ${currentProject.id}` : ""}${
+      currentProject ? `\nprojectName: ${currentProject.name}` : ""
+    }
 tags:
   - ${settings.defaultConversationTag}
 ---
