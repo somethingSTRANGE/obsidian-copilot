@@ -164,7 +164,7 @@ export default class CopilotPlugin extends Plugin {
 
     this.initActiveLeafChangeHandler();
 
-    this.addRibbonIcon("message-square", "Open Copilot Chat", (evt: MouseEvent) => {
+    this.addRibbonIcon("brain-circuit", "Open Copilot Chat", (evt: MouseEvent) => {
       this.activateView();
     });
 
