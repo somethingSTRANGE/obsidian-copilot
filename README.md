@@ -16,6 +16,15 @@ The Ultimate AI Assistant for Your Second Brain
   <a href="https://github.com/logancyang/obsidian-copilot/issues/new?template=feature_request.md">Request Feature</a>
 </p>
 
+> **🚧 Custom Build – Not an Official Release**
+>
+> This branch (`custom-build`) includes personal modifications and experimental
+> features that differ from the official Copilot for Obsidian plugin. It is not
+> intended for general distribution. For the official plugin, visit the upstream
+> repository.
+>
+> See [Custom Modifications in This Build](#custom-modifications-in-this-build) for more details.
+
 <p align="center">
   <a href="https://example.com](https://obsidian.md/blog/2024-goty-winners/">
     <img src="./images/reward-banner.svg" alt="Reward Banner" width="400"/>
@@ -60,7 +69,8 @@ This is the future we believe in. If you share this vision, please support this 
   - [Free User](#free-user)
   - [Copilot Plus/Believer](#copilot-plusbeliever)
 - [Need Help?](#need-help)
-- [FAQ](#️faq)
+- [FAQ](#faq)
+- [Custom Modifications in This Build](#custom-modifications-in-this-build)
 
 ## Copilot V3 is a New Era 🔥
 
@@ -327,6 +337,10 @@ Please refer to your model provider’s documentation for the context window siz
 💡 For QA with unlimited context, switch to the <strong>Vault QA</strong> mode in the dropdown (Copilot v2.1.0+ required).
 
 </details>
+
+## **Custom Modifications in This Build**
+
+TBD
 
 ## **🙏 Thank You**
 
