@@ -267,64 +267,6 @@ export class ChatPersistenceManager {
   /**
    * Format messages into markdown content
    */
-  private formatChatContent_old(messages: ChatMessage[]): string {
-    return messages
-      .map((message) => {
-        const timestamp = message.timestamp ? message.timestamp.display : "Unknown time";
-
-        // Strip agent reasoning block from AI messages before saving
-        let messageText = message.message;
-        if (message.sender === AI_SENDER) {
-          const reasoningData = parseReasoningBlock(messageText);
-          if (reasoningData) {
-            messageText = reasoningData.contentAfter;
-          }
-        }
-
-        let content = `**${message.sender}**: ${messageText}`;
-
-        // Include context information if present
-        if (message.context) {
-          const contextParts: string[] = [];
-
-          if (message.context.notes?.length) {
-            contextParts.push(
-              `Notes: ${message.context.notes.map((note) => note.path).join(", ")}`
-            );
-          }
-
-          if (message.context.urls?.length) {
-            contextParts.push(`URLs: ${message.context.urls.join(", ")}`);
-          }
-
-          if (message.context.webTabs?.length) {
-            contextParts.push(
-              `Web Tabs: ${message.context.webTabs.map((tab) => tab.url).join(", ")}`
-            );
-          }
-
-          if (message.context.tags?.length) {
-            contextParts.push(`Tags: ${message.context.tags.join(", ")}`);
-          }
-
-          if (message.context.folders?.length) {
-            contextParts.push(`Folders: ${message.context.folders.join(", ")}`);
-          }
-
-          if (contextParts.length > 0) {
-            content += `\n[Context: ${contextParts.join(" | ")}]`;
-          }
-        }
-
-        content += `\n[Timestamp: ${timestamp}]`;
-        return content;
-      })
-      .join("\n\n");
-  }
-
-  /**
-   * Format messages into markdown content
-   */
   formatChatContent(messages: ChatMessage[]): string {
     return messages
       .map((message) => {
@@ -473,104 +415,331 @@ export class ChatPersistenceManager {
   }
 
   /**
-   * Parse markdown content back into messages
+   * Format messages into markdown content
    */
-  private parseChatContent(content: string): ChatMessage[] {
+  private formatChatContent_old(messages: ChatMessage[]): string {
+    return messages
+      .map((message) => {
+        const timestamp = message.timestamp ? message.timestamp.display : "Unknown time";
+
+        // Strip agent reasoning block from AI messages before saving
+        let messageText = message.message;
+        if (message.sender === AI_SENDER) {
+          const reasoningData = parseReasoningBlock(messageText);
+          if (reasoningData) {
+            messageText = reasoningData.contentAfter;
+          }
+        }
+
+        let content = `**${message.sender}**: ${messageText}`;
+
+        // Include context information if present
+        if (message.context) {
+          const contextParts: string[] = [];
+
+          if (message.context.notes?.length) {
+            contextParts.push(
+              `Notes: ${message.context.notes.map((note) => note.path).join(", ")}`
+            );
+          }
+
+          if (message.context.urls?.length) {
+            contextParts.push(`URLs: ${message.context.urls.join(", ")}`);
+          }
+
+          if (message.context.webTabs?.length) {
+            contextParts.push(
+              `Web Tabs: ${message.context.webTabs.map((tab) => tab.url).join(", ")}`
+            );
+          }
+
+          if (message.context.tags?.length) {
+            contextParts.push(`Tags: ${message.context.tags.join(", ")}`);
+          }
+
+          if (message.context.folders?.length) {
+            contextParts.push(`Folders: ${message.context.folders.join(", ")}`);
+          }
+
+          if (contextParts.length > 0) {
+            content += `\n[Context: ${contextParts.join(" | ")}]`;
+          }
+        }
+
+        content += `\n[Timestamp: ${timestamp}]`;
+        return content;
+      })
+      .join("\n\n");
+  }
+
+  /**
+   * Remove YAML frontmatter from the chat content
+   */
+  private getChatContentWithoutFrontmatter(content: string): string {
+    const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---/);
+    return frontmatterMatch ? content.slice(frontmatterMatch[0].length).trim() : content;
+  }
+
+  /**
+   * Determine whether the chat content uses the callout-style format
+   */
+  private isCalloutChatFormat(content: string): boolean {
+    const chatContent = this.getChatContentWithoutFrontmatter(content);
+    return chatContent.includes("> [!copilot-user]");
+  }
+
+  /**
+   * Parse chat content in the callout format using Obsidian callout indicators and richer Markdown
+   */
+  private parseCalloutChatFormat(content: string): ChatMessage[] {
+    const chatContent = this.stripFrontmatter(content);
+    const lines = chatContent.split("\n");
     const messages: ChatMessage[] = [];
 
-    // Extract the YAML frontmatter
-    const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---/);
-    let chatContent = content;
+    let remainingLines = [...lines];
 
-    if (frontmatterMatch) {
-      chatContent = content.slice(frontmatterMatch[0].length).trim();
-    }
-
-    // Parse messages from the content
-    // Look for message pattern: **user**: or **ai**: followed by content
-    const messagePattern = /\*\*(user|ai)\*\*: ([\s\S]*?)(?=(?:\n\*\*(?:user|ai)\*\*: )|$)/g;
-
-    let match;
-    while ((match = messagePattern.exec(chatContent)) !== null) {
-      const sender = match[1] === "user" ? USER_SENDER : AI_SENDER;
-      const fullContent = match[2].trim();
-
-      // Split content into lines to extract timestamp, context, and message
-      const contentLines = fullContent.split("\n");
-      let messageText = fullContent;
-      let timestamp = "Unknown time";
-      let contextInfo: any = undefined;
-
-      // Check for context and timestamp lines
-      let endIndex = contentLines.length;
-
-      // Check if last line is a timestamp
-      if (contentLines[endIndex - 1]?.startsWith("[Timestamp: ")) {
-        const timestampMatch = contentLines[endIndex - 1].match(/\[Timestamp: (.*?)\]/);
-        if (timestampMatch) {
-          timestamp = timestampMatch[1];
-          endIndex--;
-        }
-      }
-
-      // Check if second-to-last line is context
-      if (endIndex > 0 && contentLines[endIndex - 1]?.startsWith("[Context: ")) {
-        const contextMatch = contentLines[endIndex - 1].match(/\[Context: (.*?)\]/);
-        if (contextMatch) {
-          const contextStr = contextMatch[1];
-          contextInfo = this.parseContextString(contextStr);
-          endIndex--;
-        }
-      }
-
-      // Message is everything before context and timestamp
-      messageText = contentLines.slice(0, endIndex).join("\n").trim();
-
-      // Strip old tool call markers and agent reasoning blocks from AI messages
-      if (sender === AI_SENDER) {
-        // Strip old tool call banners: <!--TOOL_CALL_START:...-->...<!--TOOL_CALL_END:...-->
-        messageText = messageText.replace(
-          /<!--TOOL_CALL_START:[^:]+:[^:]+:[^:]+:[^:]+:[^:]*:[^:]+-->[\s\S]*?<!--TOOL_CALL_END:[^:]+:[\s\S]*?-->/g,
-          ""
-        );
-        // Strip agent reasoning blocks: <!--AGENT_REASONING:...-->
-        const reasoningData = parseReasoningBlock(messageText);
-        if (reasoningData) {
-          messageText = reasoningData.contentAfter;
-        }
-        // Clean up any resulting multiple consecutive newlines
-        messageText = messageText.replace(/\n{3,}/g, "\n\n").trim();
-      }
-
-      // Parse the timestamp
-      let epoch: number | undefined;
-      if (timestamp !== "Unknown time") {
-        const date = new Date(timestamp);
-        if (!isNaN(date.getTime())) {
-          epoch = date.getTime();
-        }
-      }
-
-      messages.push({
-        message: messageText,
-        sender,
-        isVisible: true,
-        timestamp: epoch
-          ? {
-              epoch,
-              display: timestamp,
-              fileName: "",
-            }
-          : null,
-        context: contextInfo,
-      });
+    while (remainingLines.length > 0) {
+      const { chatMessage, remainingLines: nextLines } = this.parseChatMessage(remainingLines);
+      if (chatMessage) messages.push(chatMessage);
+      remainingLines = nextLines;
     }
 
     return messages;
   }
 
   /**
-   * Parse context string back into context object
+   * Parse the Markdown content back into messages
+   */
+  private parseChatContent(content: string): ChatMessage[] {
+    const chatContent = this.getChatContentWithoutFrontmatter(content);
+    return this.isCalloutChatFormat(chatContent)
+      ? this.parseCalloutChatFormat(chatContent)
+      : this.parseInlineChatFormat(chatContent);
+  }
+
+  /**
+   * Determine the type of the next message and delegate to the appropriate parser
+   */
+  private parseChatMessage(lines: string[]): {
+    chatMessage: ChatMessage | null;
+    remainingLines: string[];
+  } {
+    let i = 0;
+
+    // Skip leading blank lines
+    while (i < lines.length && lines[i].trim() === "") i++;
+    if (i >= lines.length) return { chatMessage: null, remainingLines: [] };
+
+    // Only pass unprocessed lines to the parser
+    const unprocessedLines = lines.slice(i);
+    const line = unprocessedLines[0];
+
+    if (line.trimStart().startsWith("> [!copilot-user]")) {
+      return this.parseChatMessageFromUser(unprocessedLines);
+    } else {
+      return this.parseChatMessageFromAI(unprocessedLines);
+    }
+  }
+
+  /**
+   * Parse an AI message from callout-style chat content
+   */
+  private parseChatMessageFromAI(lines: string[]): {
+    chatMessage: ChatMessage;
+    remainingLines: string[];
+  } {
+    const parseTimeTag = (line: string) => {
+      const match = line.match(/<time>(.*?)<\/time>/);
+      return match ? match[1] : null;
+    };
+
+    let i = 0;
+    const aiLines: string[] = [];
+    let timestampStr: string | null = null;
+
+    while (i < lines.length) {
+      const t = parseTimeTag(lines[i]);
+      if (t) {
+        timestampStr = t;
+        i++;
+        break;
+      }
+      aiLines.push(lines[i]);
+      i++;
+    }
+
+    if (!timestampStr) timestampStr = "Unknown time";
+
+    const messageText = aiLines.join("\n").trim();
+
+    const timestampObj = (() => {
+      const d = new Date(timestampStr!);
+      return isNaN(d.getTime())
+        ? null
+        : { epoch: d.getTime(), display: timestampStr!, fileName: "" };
+    })();
+
+    return {
+      chatMessage: {
+        message: messageText,
+        sender: AI_SENDER,
+        isVisible: true,
+        timestamp: timestampObj,
+        context: undefined,
+      },
+      remainingLines: lines.slice(i),
+    };
+  }
+
+  /**
+   * Parse a user message from callout-style chat content
+   */
+  private parseChatMessageFromUser(lines: string[]): {
+    chatMessage: ChatMessage;
+    remainingLines: string[];
+  } {
+    const stripBlockquote = (line: string) =>
+      line.startsWith(">") ? line.slice(1).replace(/^ ?/, "") : line;
+    const parseTimeTag = (line: string) => {
+      const match = line.match(/<time>(.*?)<\/time>/);
+      return match ? match[1] : null;
+    };
+
+    let i = 0;
+    const userLines: string[] = [];
+
+    while (i < lines.length && lines[i].startsWith(">")) {
+      userLines.push(lines[i]);
+      i++;
+    }
+
+    // Remove header line and blank blockquote lines
+    const normalized = userLines
+      .slice(1)
+      .map(stripBlockquote)
+      .filter((l) => l !== "");
+
+    // --- Extract timestamp (last <time> line) ---
+    let timestampStr: string | null = null;
+    if (normalized.length > 0) {
+      const lastLine = normalized[normalized.length - 1];
+      const t = parseTimeTag(lastLine);
+      if (t) {
+        timestampStr = t;
+        normalized.pop();
+      }
+    }
+    if (!timestampStr) timestampStr = "Unknown time";
+
+    // --- Extract context ---
+    const ctxIdx = normalized.findIndex(
+      (l) => l.startsWith("[!copilot-context]") || l.startsWith("> [!copilot-context]")
+    );
+
+    let messageTextLines: string[];
+    let context: any;
+
+    if (ctxIdx >= 0) {
+      messageTextLines = normalized.slice(0, ctxIdx);
+      const ctxLines = normalized.slice(ctxIdx + 1);
+      context = this.parseContextCallout(ctxLines);
+    } else {
+      messageTextLines = normalized;
+    }
+
+    const messageText = messageTextLines.join("\n").trim();
+
+    const timestampObj = (() => {
+      const d = new Date(timestampStr!);
+      return isNaN(d.getTime())
+        ? null
+        : { epoch: d.getTime(), display: timestampStr!, fileName: "" };
+    })();
+
+    return {
+      chatMessage: {
+        message: messageText,
+        sender: USER_SENDER,
+        isVisible: true,
+        timestamp: timestampObj,
+        context,
+      },
+      remainingLines: lines.slice(i),
+    };
+  }
+
+  /**
+   * Parse context callout strings back into a context object
+   */
+  private parseContextCallout(ctxLines: string[]): any {
+    if (!ctxLines.length) return undefined;
+
+    // Remove blockquote prefix
+    const cleaned = ctxLines.map((l) => l.replace(/^>\s?/, ""));
+
+    const context: any = {
+      notes: [],
+      urls: [],
+      tags: [],
+      folders: [],
+      webTabs: [],
+    };
+
+    let key: keyof typeof context | null = null;
+
+    const parseNoteLink = (link: string) => {
+      const match = link.match(/\[\[(.+?)\|(.+?)\]\]/);
+      return match ? { path: match[1], basename: match[2] } : { path: link, basename: link };
+    };
+
+    for (const l of cleaned) {
+      const top = l.match(/^- (.+)$/);
+      if (top) {
+        const section = top[1].toLowerCase();
+
+        if (section === "notes") key = "notes";
+        else if (section === "urls") key = "urls";
+        else if (section === "tags") key = "tags";
+        else if (section === "folders") key = "folders";
+        else if (section === "web tabs") key = "webTabs";
+        else key = null;
+
+        continue;
+      }
+
+      const sub = l.match(/^\s*-\s+(.+)/);
+      if (sub && key) {
+        const val = sub[1].trim();
+
+        if (key === "notes") {
+          context.notes.push(parseNoteLink(val));
+        } else if (key === "webTabs") {
+          const urlMatch = val.match(/\]\((https?:\/\/[^)]+)\)/);
+          if (urlMatch) {
+            context.webTabs.push({ url: urlMatch[1] });
+          }
+        } else {
+          context[key].push(val);
+        }
+      }
+    }
+
+    // Match old inline behavior: return undefined if empty
+    if (
+      context.notes.length === 0 &&
+      context.urls.length === 0 &&
+      context.tags.length === 0 &&
+      context.folders.length === 0 &&
+      context.webTabs.length === 0
+    ) {
+      return undefined;
+    }
+
+    return context;
+  }
+
+  /**
+   * Parse context string back into a context object
    */
   private parseContextString(contextStr: string): any {
     const context: any = {
@@ -669,6 +838,96 @@ export class ChatPersistenceManager {
     }
 
     return undefined;
+  }
+
+  /**
+   * Parse chat content in the legacy inline format using **user**: and **ai**: sender markers
+   */
+  private parseInlineChatFormat(content: string): ChatMessage[] {
+    const messages: ChatMessage[] = [];
+    const chatContent = this.stripFrontmatter(content);
+
+    // Parse messages from the content
+    // Look for the message pattern: **user**: or **ai**: followed by content
+    const messagePattern = /\*\*(user|ai)\*\*: ([\s\S]*?)(?=(?:\n\*\*(?:user|ai)\*\*: )|$)/g;
+
+    let match;
+    while ((match = messagePattern.exec(chatContent)) !== null) {
+      const sender = match[1] === "user" ? USER_SENDER : AI_SENDER;
+      const fullContent = match[2].trim();
+
+      // Split content into lines to extract timestamp, context, and message
+      const contentLines = fullContent.split("\n");
+      let messageText = fullContent;
+      let timestamp = "Unknown time";
+      let contextInfo: any = undefined;
+
+      // Check for context and timestamp lines
+      let endIndex = contentLines.length;
+
+      // Check if last line is a timestamp
+      if (contentLines[endIndex - 1]?.startsWith("[Timestamp: ")) {
+        const timestampMatch = contentLines[endIndex - 1].match(/\[Timestamp: (.*?)\]/);
+        if (timestampMatch) {
+          timestamp = timestampMatch[1];
+          endIndex--;
+        }
+      }
+
+      // Check if second-to-last line is context
+      if (endIndex > 0 && contentLines[endIndex - 1]?.startsWith("[Context: ")) {
+        const contextMatch = contentLines[endIndex - 1].match(/\[Context: (.*?)\]/);
+        if (contextMatch) {
+          const contextStr = contextMatch[1];
+          contextInfo = this.parseContextString(contextStr);
+          endIndex--;
+        }
+      }
+
+      // Message is everything before context and timestamp
+      messageText = contentLines.slice(0, endIndex).join("\n").trim();
+
+      // Strip old tool call markers and agent reasoning blocks from AI messages
+      if (sender === AI_SENDER) {
+        // Strip old tool call banners: <!--TOOL_CALL_START:...-->...<!--TOOL_CALL_END:...-->
+        messageText = messageText.replace(
+          /<!--TOOL_CALL_START:[^:]+:[^:]+:[^:]+:[^:]+:[^:]*:[^:]+-->[\s\S]*?<!--TOOL_CALL_END:[^:]+:[\s\S]*?-->/g,
+          ""
+        );
+        // Strip agent reasoning blocks: <!--AGENT_REASONING:...-->
+        const reasoningData = parseReasoningBlock(messageText);
+        if (reasoningData) {
+          messageText = reasoningData.contentAfter;
+        }
+        // Clean up any resulting multiple consecutive newlines
+        messageText = messageText.replace(/\n{3,}/g, "\n\n").trim();
+      }
+
+      // Parse the timestamp
+      let epoch: number | undefined;
+      if (timestamp !== "Unknown time") {
+        const date = new Date(timestamp);
+        if (!isNaN(date.getTime())) {
+          epoch = date.getTime();
+        }
+      }
+
+      messages.push({
+        message: messageText,
+        sender,
+        isVisible: true,
+        timestamp: epoch
+          ? {
+              epoch,
+              display: timestamp,
+              fileName: "",
+            }
+          : null,
+        context: contextInfo,
+      });
+    }
+
+    return messages;
   }
 
   /**
@@ -949,5 +1208,13 @@ ${chatContent}`;
     }
     const message = error instanceof Error ? error.message : String(error);
     return message.toLowerCase().includes("already exists");
+  }
+
+  /**
+   * Strip YAML frontmatter from the chat content
+   */
+  private stripFrontmatter(content: string): string {
+    const match = content.match(/^---\n([\s\S]*?)\n---/);
+    return match ? content.slice(match[0].length).trim() : content;
   }
 }
