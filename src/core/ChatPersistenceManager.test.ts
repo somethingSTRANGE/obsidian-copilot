@@ -5,6 +5,18 @@ import { ChatPersistenceManager } from "./ChatPersistenceManager";
 const USER_SENDER = "user";
 const AI_SENDER = "ai";
 
+// Some IDEs (including Rider) may trim trailing whitespace inside template
+// literals when the project's `.editorconfig` enables `trim_trailing_whitespace`.
+// To ensure tests preserve the exact expected Markdown output, we interpolate
+// this value instead of writing `"> "` directly in a template literal.
+export const BLANK_CALLOUT_LINE = "> ";
+
+// These tags are defined separately so they can be interpolated into template
+// literals. This avoids cases where an IDE might style or treat `<time>`
+// as embedded HTML rather than part of a string literal.
+export const TIME_OPEN = "<time>";
+export const TIME_CLOSE = "</time>";
+
 // Mock the imports
 jest.mock("obsidian", () => ({
   Notice: jest.fn(),
@@ -174,17 +186,23 @@ describe("ChatPersistenceManager", () => {
 
       const result = (persistenceManager as any).formatChatContent(messages);
 
-      const expected = `**user**: my name is logan, what's your name
-[Timestamp: 2024/09/23 22:18:00]
+      const expected = `> [!copilot-user] User Prompt
+> my name is logan, what's your name
+${BLANK_CALLOUT_LINE}
+> ${TIME_OPEN}2024/09/23 22:18:00${TIME_CLOSE}
 
-**ai**: I don't have a name. I am a large language model. My purpose is to help users like you.
-[Timestamp: 2024/09/23 22:18:01]
+I don't have a name. I am a large language model. My purpose is to help users like you.
 
-**user**: what's my name
-[Timestamp: 2024/09/23 22:56:20]
+${TIME_OPEN}2024/09/23 22:18:01${TIME_CLOSE}
 
-**ai**: Your name is Logan.
-[Timestamp: 2024/09/23 22:56:20]`;
+> [!copilot-user] User Prompt
+> what's my name
+${BLANK_CALLOUT_LINE}
+> ${TIME_OPEN}2024/09/23 22:56:20${TIME_CLOSE}
+
+Your name is Logan.
+
+${TIME_OPEN}2024/09/23 22:56:20${TIME_CLOSE}`;
 
       expect(result).toBe(expected);
     });
@@ -202,14 +220,18 @@ describe("ChatPersistenceManager", () => {
 
       const result = (persistenceManager as any).formatChatContent(messages);
 
-      expect(result).toBe(`**user**: Hello
-[Timestamp: Unknown time]`);
+      expect(result).toBe(`> [!copilot-user] User Prompt
+> Hello
+${BLANK_CALLOUT_LINE}
+> ${TIME_OPEN}Unknown time${TIME_CLOSE}`);
     });
   });
 
   describe("parseChatContent", () => {
-    it("should parse standard format correctly", () => {
-      const content = `---
+    const standardFormatTestCases = [
+      {
+        version: "inline content",
+        content: `---
 epoch: 1695513480000
 modelKey: gpt-4
 tags:
@@ -229,44 +251,83 @@ tags:
 [Timestamp: 2024/09/23 22:56:20]
 
 **ai**: Your name is Logan.
-[Timestamp: 2024/09/23 22:56:20]`;
+[Timestamp: 2024/09/23 22:56:20]`,
+      },
+      {
+        version: "callout content",
+        content: `---
+epoch: 1695513480000
+modelKey: gpt-4
+tags:
+  - copilot-conversation
+---
 
-      const result = (persistenceManager as any).parseChatContent(content);
+> [!copilot-user] User Prompt
+> my name is logan, what's your name
+${BLANK_CALLOUT_LINE}
+> ${TIME_OPEN}2024/09/23 22:18:00${TIME_CLOSE}
 
-      expect(result).toHaveLength(5);
-      expect(result[0]).toMatchObject({
-        message: "my name is logan, what's your name",
-        sender: USER_SENDER,
-        isVisible: true,
-        timestamp: {
-          display: "2024/09/23 22:18:00",
-        },
-      });
-      expect(result[1]).toMatchObject({
-        message:
-          "I don't have a name. I am a large language model. My purpose is to help users like you.",
-        sender: AI_SENDER,
-        isVisible: true,
-        timestamp: {
-          display: "2024/09/23 22:18:01",
-        },
-      });
-      expect(result[2]).toMatchObject({
-        message: "what is your creator",
-        sender: USER_SENDER,
-      });
-      expect(result[3]).toMatchObject({
-        message: "what's my name",
-        sender: USER_SENDER,
-      });
-      expect(result[4]).toMatchObject({
-        message: "Your name is Logan.",
-        sender: AI_SENDER,
-      });
-    });
+I don't have a name. I am a large language model. My purpose is to help users like you.
 
-    it("should handle multi-line messages", () => {
-      const content = `---
+${TIME_OPEN}2024/09/23 22:18:01${TIME_CLOSE}
+
+> [!copilot-user] User Prompt
+> what is your creator
+${BLANK_CALLOUT_LINE}
+> ${TIME_OPEN}2024/09/23 22:39:27${TIME_CLOSE}
+
+> [!copilot-user] User Prompt
+> what's my name
+${BLANK_CALLOUT_LINE}
+> ${TIME_OPEN}2024/09/23 22:56:20${TIME_CLOSE}
+
+Your name is Logan.
+
+${TIME_OPEN}2024/09/23 22:56:20${TIME_CLOSE}`,
+      },
+    ];
+    it.each(standardFormatTestCases)(
+      "should parse standard format correctly using $version",
+      ({ content }) => {
+        const result = (persistenceManager as any).parseChatContent(content);
+
+        expect(result).toHaveLength(5);
+        expect(result[0]).toMatchObject({
+          message: "my name is logan, what's your name",
+          sender: USER_SENDER,
+          isVisible: true,
+          timestamp: {
+            display: "2024/09/23 22:18:00",
+          },
+        });
+        expect(result[1]).toMatchObject({
+          message:
+            "I don't have a name. I am a large language model. My purpose is to help users like you.",
+          sender: AI_SENDER,
+          isVisible: true,
+          timestamp: {
+            display: "2024/09/23 22:18:01",
+          },
+        });
+        expect(result[2]).toMatchObject({
+          message: "what is your creator",
+          sender: USER_SENDER,
+        });
+        expect(result[3]).toMatchObject({
+          message: "what's my name",
+          sender: USER_SENDER,
+        });
+        expect(result[4]).toMatchObject({
+          message: "Your name is Logan.",
+          sender: AI_SENDER,
+        });
+      }
+    );
+
+    const multilineMessageTestCases = [
+      {
+        version: "inline content",
+        content: `---
 epoch: 1695513480000
 modelKey: gpt-4
 tags:
@@ -281,31 +342,76 @@ tags:
 Autumn leaves falling
 Gentle breeze whispers secrets
 Nature's quiet song
-[Timestamp: 2024/09/23 22:18:01]`;
+[Timestamp: 2024/09/23 22:18:01]`,
+      },
+      {
+        version: "callout content",
+        content: `---
+epoch: 1695513480000
+modelKey: gpt-4
+tags:
+  - copilot-conversation
+---
 
-      const result = (persistenceManager as any).parseChatContent(content);
+> [!copilot-user] User Prompt
+> Can you write a haiku?
+${BLANK_CALLOUT_LINE}
+> ${TIME_OPEN}2024/09/23 22:18:00${TIME_CLOSE}
 
-      expect(result).toHaveLength(2);
-      expect(result[1].message).toBe(`Here's a haiku for you:
+Here's a haiku for you:
+
+Autumn leaves falling
+Gentle breeze whispers secrets
+Nature's quiet song
+
+${TIME_OPEN}2024/09/23 22:18:01${TIME_CLOSE}`,
+      },
+    ];
+    it.each(multilineMessageTestCases)(
+      "should handle multi-line messages using $version",
+      ({ content }) => {
+        const result = (persistenceManager as any).parseChatContent(content);
+
+        expect(result).toHaveLength(2);
+        expect(result[1].message).toBe(`Here's a haiku for you:
 
 Autumn leaves falling
 Gentle breeze whispers secrets
 Nature's quiet song`);
-    });
+      }
+    );
 
-    it("should handle messages without timestamps", () => {
-      const content = `**user**: Hello
+    const messageWithoutTimestampTestCases = [
+      {
+        version: "inline content",
+        content: `**user**: Hello
 [Timestamp: Unknown time]
 
 **ai**: Hi there!
-[Timestamp: Unknown time]`;
+[Timestamp: Unknown time]`,
+      },
+      {
+        version: "callout content",
+        content: `> [!copilot-user] User Prompt
+> Hello
+${BLANK_CALLOUT_LINE}
+> ${TIME_OPEN}Unknown time${TIME_CLOSE}
 
-      const result = (persistenceManager as any).parseChatContent(content);
+Hi there!
 
-      expect(result).toHaveLength(2);
-      expect(result[0].timestamp).toBeNull();
-      expect(result[1].timestamp).toBeNull();
-    });
+${TIME_OPEN}Unknown time${TIME_CLOSE}`,
+      },
+    ];
+    it.each(messageWithoutTimestampTestCases)(
+      "should handle messages without timestamps using $version",
+      ({ content }) => {
+        const result = (persistenceManager as any).parseChatContent(content);
+
+        expect(result).toHaveLength(2);
+        expect(result[0].timestamp).toBeNull();
+        expect(result[1].timestamp).toBeNull();
+      }
+    );
   });
 
   describe("saveChat", () => {
@@ -331,7 +437,7 @@ Nature's quiet song`);
 
       expect(mockApp.vault.create).toHaveBeenCalledWith(
         "test-folder/Hello@20240923_221800.md",
-        expect.stringContaining("**user**: Hello")
+        expect.stringContaining("> [!copilot-user] User Prompt\n> Hello")
       );
       const savedContent = mockApp.vault.create.mock.calls[0][1];
       expect(savedContent).not.toContain("topic:");
@@ -853,7 +959,7 @@ Nature's quiet song`);
 
       expect(mockApp.vault.modify).toHaveBeenCalledWith(
         existingFile,
-        expect.stringContaining("**user**: Hello")
+        expect.stringContaining("> [!copilot-user] User Prompt\n> Hello")
       );
       expect(mockApp.vault.create).not.toHaveBeenCalled();
 
@@ -905,7 +1011,7 @@ Nature's quiet song`);
 
       expect(mockApp.vault.modify).toHaveBeenCalledWith(
         existingFile,
-        expect.stringContaining("**user**: Hello again")
+        expect.stringContaining("> [!copilot-user] User Prompt\n> Hello again")
       );
       expect(mockApp.vault.create).toHaveBeenCalledTimes(1);
       expect(Notice).toHaveBeenCalledWith("Existing chat note found - updating it now.");
@@ -956,7 +1062,7 @@ Nature's quiet song`);
 
       expect(mockApp.vault.modify).toHaveBeenCalledWith(
         existingFile,
-        expect.stringContaining("**user**: Conflict message")
+        expect.stringContaining("> [!copilot-user] User Prompt\n> Conflict message")
       );
       expect(mockApp.vault.create).toHaveBeenCalledTimes(1);
       expect(Notice).toHaveBeenCalledWith("Existing chat note found - updating it now.");
@@ -995,7 +1101,7 @@ Nature's quiet song`);
       // Should write via adapter, not vault.create
       expect(mockApp.vault.adapter.write).toHaveBeenCalledWith(
         expect.stringContaining("test-folder/"),
-        expect.stringContaining("**user**: Hello")
+        expect.stringContaining("> [!copilot-user] User Prompt\n> Hello")
       );
       expect(mockApp.vault.create).not.toHaveBeenCalled();
 
@@ -1004,8 +1110,10 @@ Nature's quiet song`);
   });
 
   describe("loadChat", () => {
-    it("should load and parse chat from file", async () => {
-      const fileContent = `---
+    const loadAndParseFromFileTestCases = [
+      {
+        version: "inline content",
+        content: `---
 epoch: 1695513480000
 modelKey: gpt-4
 tags:
@@ -1016,17 +1124,40 @@ tags:
 [Timestamp: 2024/09/23 22:18:00]
 
 **ai**: Hi there!
-[Timestamp: 2024/09/23 22:18:01]`;
+[Timestamp: 2024/09/23 22:18:01]`,
+      },
+      {
+        version: "callout content",
+        content: `---
+epoch: 1695513480000
+modelKey: gpt-4
+tags:
+  - copilot-conversation
+---
 
-      const mockFile = { path: "test.md" } as TFile;
-      mockApp.vault.read.mockResolvedValue(fileContent);
+> [!copilot-user] User Prompt
+> Hello
+${BLANK_CALLOUT_LINE}
+> ${TIME_OPEN}2024/09/23 22:18:00${TIME_CLOSE}
 
-      const result = await persistenceManager.loadChat(mockFile);
+Hi there!
 
-      expect(result).toHaveLength(2);
-      expect(result[0].sender).toBe(USER_SENDER);
-      expect(result[1].sender).toBe(AI_SENDER);
-    });
+${TIME_OPEN}2024/09/23 22:18:01${TIME_CLOSE}`,
+      },
+    ];
+    it.each(loadAndParseFromFileTestCases)(
+      "should load and parse chat from file using $version",
+      async ({ content }) => {
+        const mockFile = { path: "test.md" } as TFile;
+        mockApp.vault.read.mockResolvedValue(content);
+
+        const result = await persistenceManager.loadChat(mockFile);
+
+        expect(result).toHaveLength(2);
+        expect(result[0].sender).toBe(USER_SENDER);
+        expect(result[1].sender).toBe(AI_SENDER);
+      }
+    );
   });
 
   describe("round-trip save and load", () => {
