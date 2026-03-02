@@ -714,7 +714,7 @@ export class ChatPersistenceManager {
         if (key === "notes") {
           context.notes.push(parseNoteLink(val));
         } else if (key === "webTabs") {
-          const urlMatch = val.match(/\]\((https?:\/\/[^)]+)\)/);
+          const urlMatch = val.match(/]\((https?:\/\/[^)]+)\)$/);
           if (urlMatch) {
             context.webTabs.push({ url: urlMatch[1] });
           }
